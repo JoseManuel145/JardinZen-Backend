@@ -149,3 +149,29 @@ BEGIN
     RETURN new_plant_id;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Function to get all plants for a specific user
+CREATE OR REPLACE FUNCTION get_user_plants(user_id INTEGER) 
+RETURNS TABLE(id_plant INTEGER, info JSONB, hora_de_riego VARCHAR, category CategoryPlant, tipo Type_Plant, img VARCHAR) 
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.id_plant, p.info, p.hora_de_riego, p.category, p.tipo, p.img
+    FROM Plants p
+    JOIN User_Plant up ON p.id_plant = up.id_plant
+    WHERE up.id_user = user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get a specific plant for a specific user
+CREATE OR REPLACE FUNCTION get_user_plant(user_id INTEGER, plant_id INTEGER)
+RETURNS TABLE(id_plant INTEGER, info JSONB, hora_de_riego VARCHAR, category CategoryPlant, tipo Type_Plant, img VARCHAR) 
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.id_plant, p.info, p.hora_de_riego, p.category, p.tipo, p.img
+    FROM Plants p
+    JOIN User_Plant up ON p.id_plant = up.id_plant
+    WHERE up.id_user = user_id AND p.id_plant = plant_id;
+END;
+$$ LANGUAGE plpgsql;

@@ -20,8 +20,8 @@ class UserBase(BaseModel): #el boceto de los datos
 class UserRequest(UserBase): #lo que envia el usuario
     password: str  
 
-class UserResponse(UserBase): #lo que devuelve el servidor50
-    id: int
+class UserResponse(UserBase): #lo que devuelve el servidor
+    id_user: int
 
     class Config:
         orm_mode = True

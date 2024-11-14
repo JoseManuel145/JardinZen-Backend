@@ -1,22 +1,22 @@
-import enum
-from sqlalchemy import Column, Integer, String, Enum
+# user_model.py
+from sqlalchemy import Column, Integer, String, Enum, JSON, LargeBinary
+from sqlalchemy.orm import relationship
 from database.database import Base
-from typing import Optional, Dict, Any
+from models.user_plant_model import UserPlant
 
-class RolEnum(enum.Enum):
-    usuario = "usuario"
-    gestor_vivero = "gestor_vivero"
-    administrador = "administrador"
+class Role(Enum):
+    ADMIN = "admin"
+    USER = "user"
 
-
-class Users(Base):
-    __tablename__ = "Usuarios"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
+class User(Base):
+    __tablename__ = "Users"
+    
+    id_user = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
-    ubication: Optional[Dict[str, Any]]
-    img = Column(String, nullable=True) #se guardara solo el path
-    rol = Column(Enum(RolEnum), nullable=False)
+    ubication = Column(JSON)
+    img = Column(LargeBinary)
+    role = Column(Enum(Role), nullable=False)
 
+    plants = relationship("UserPlant", back_populates="user")

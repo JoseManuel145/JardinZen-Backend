@@ -24,7 +24,6 @@ class PlantBase(BaseModel):
     hora_de_riego: str
     category: CategoryPlantEnum
     tipo: TypePlantEnum
-    img: Optional[str] = None
 
     class Config:
         orm_mode = True

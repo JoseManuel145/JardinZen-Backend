@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Enum
-from sqlalchemy.orm import composite
+from sqlalchemy import Column, Integer, String, Enum, LargeBinary
+from sqlalchemy.orm import composite, relationship
 from database.database import Base
 from typing import Optional
 import enum
+from models.user_plant_model import UserPlant 
 
 class Category_Plant(enum.Enum):
     categoriaA = "planta_interior"
@@ -32,4 +33,7 @@ class Plant(Base):
     hora_de_riego = Column(String, nullable=False)
     category = Column(Enum(Category_Plant), nullable=False)
     tipo = Column(Enum(Type_Plant), nullable=False)
-    img = Column(String, nullable=True)
+    img = Column(LargeBinary, nullable=True)
+    
+    users = relationship("UserPlant", back_populates="plant")
+
