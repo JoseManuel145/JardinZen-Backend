@@ -11,8 +11,8 @@ Base.metadata.create_all(bind=engine)
 
 # Obtiene un usuario por ID
 @route.get('/user/{id_user}', status_code=status.HTTP_200_OK, response_model=UserResponse)
-def get_user(id_user: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == id_user).first()
+def get_user(id_user: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id_user == id_user).first()
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"User with id {id_user} not found")
@@ -45,8 +45,8 @@ def login(email: str, password: str, db: Session = Depends(get_db)):
 
 # Eliminar el usuario por ID
 @route.delete('/account/{id_user}', status_code=status.HTTP_200_OK, response_model=UserResponse)
-def delete_user(id_user: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == id_user).first()
+def delete_user(id_user: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id_user == id_user).first()
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"User with id {id_user} not found")
@@ -57,12 +57,12 @@ def delete_user(id_user: str, db: Session = Depends(get_db)):
 # Editar tu perfil
 @route.put('/account/{id_user}', status_code=status.HTTP_200_OK, response_model=UserResponse)
 async def update_user(
-    id_user: str,
+    id_user: int,
     user: UserRequest,
     file: Optional[UploadFile] = File(None),  # Imagen opcional
     db: Session = Depends(get_db)
 ):
-    user_db = db.query(User).filter(User.id == id_user).first()
+    user_db = db.query(User).filter(User.id_user == id_user).first()
     if user_db is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"User with id {id_user} not found")

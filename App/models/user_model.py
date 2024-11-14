@@ -5,8 +5,9 @@ from database.database import Base
 from models.user_plant_model import UserPlant
 
 class Role(Enum):
-    ADMIN = "admin"
-    USER = "user"
+    user = 'usuario'
+    nursery_manager = 'gestor_vivero'
+    admin = 'administrador'
 
 class User(Base):
     __tablename__ = "Users"

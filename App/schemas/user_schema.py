@@ -11,7 +11,6 @@ class UserBase(BaseModel): #el boceto de los datos
     name: str
     email: str
     ubication: Optional[Dict[str, Any]]
-    img: Optional[str]
     rol: RoleEnum
 
     class Config:
