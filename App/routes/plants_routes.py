@@ -10,7 +10,7 @@ route = APIRouter()
 
 Base.metadata.create_all(bind=engine)
 
-
+# Obtiene todas las plantas de x usuario
 @route.get('/{id_user}/plants', response_model=list[PlantResponse], status_code=status.HTTP_200_OK)
 def get_plants(id_user: int, db: Session = Depends(get_db)):
     plants = db.execute(
@@ -21,7 +21,7 @@ def get_plants(id_user: int, db: Session = Depends(get_db)):
         )
     return plants
 
-
+# Obtiene una planta en especifico de x usuario
 @route.get('/{id_user}/plants/{id_plant}', response_model=PlantResponse, status_code=status.HTTP_200_OK)
 def get_plant(id_user: int, id_plant: int, db: Session = Depends(get_db)):
     plant = db.execute(
@@ -34,7 +34,7 @@ def get_plant(id_user: int, id_plant: int, db: Session = Depends(get_db)):
         )
     return plant
 
-
+# crea una nueva planta
 @route.post('/{id_user}/plants', response_model=PlantResponse, status_code=status.HTTP_201_CREATED)
 async def create_plant(
     id_user: int,
@@ -67,7 +67,7 @@ async def create_plant(
     db.commit()
     return new_plant
 
-
+# Edita la planta
 @route.put('/{id_user}/plants/{id_plant}', response_model=PlantResponse, status_code=status.HTTP_200_OK)
 def update_plant(id_plant: int, plant: PlantRequest, db: Session = Depends(get_db)):
     existing_plant = db.query(Plant).filter(Plant.id_plant == id_plant).first()
@@ -81,7 +81,7 @@ def update_plant(id_plant: int, plant: PlantRequest, db: Session = Depends(get_d
     db.refresh(existing_plant)
     return existing_plant
 
-
+# Elimina la planta
 @route.delete('/{id_user}/plants/{id_plant}', status_code=status.HTTP_204_NO_CONTENT)
 def delete_plant(id_plant: int, db: Session = Depends(get_db)):
     plant = db.query(Plant).filter(Plant.id_plant == id_plant).first()
