@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Enum, JSON, LargeBinary
 from sqlalchemy.orm import relationship
 from database.database import Base
 from models.user_plant_model import UserPlant
+from enum import Enum
 
 class Role(Enum):
     user = 'usuario'

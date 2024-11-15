@@ -1,15 +1,13 @@
 from sqlalchemy import Column, Integer, String, Enum, LargeBinary
 from sqlalchemy.orm import composite, relationship
 from database.database import Base
-from typing import Optional
-import enum
-from models.user_plant_model import UserPlant 
+from enum import Enum
 
-class Category_Plant(enum.Enum):
+class Category_Plant(Enum):
     categoriaA = "planta_interior"
     categoriaB = "arbol_fruta"
 
-class Type_Plant(enum.Enum):
+class Type_Plant(Enum):
     arbusto = "arbusto"
     flor = "flor"
     arbol = "arbol"
