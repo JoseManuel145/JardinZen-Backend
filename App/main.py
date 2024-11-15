@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from database.database import Base, engine
 from routes import plants_routes, user_route, nursery_route, publication_route
-app = FastAPI()
-Base.metadata.create_all(bind=engine)
+from middlewares.password_middleware import PasswordMiddleware  
 
+app = FastAPI()
+app.add_middleware(PasswordMiddleware)  
+Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def read_root():

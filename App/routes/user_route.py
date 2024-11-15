@@ -4,6 +4,7 @@ from database.database import Base, engine, get_db
 from schemas.user_schema import UserRequest, UserResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from middlewares.password_middleware import PasswordMiddleware
 
 route = APIRouter()
 
@@ -25,8 +26,10 @@ async def create_user(
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
+    # Hashea la contraseña antes de guardarla
+    hashed_password = PasswordMiddleware.hash_password(user.password)
     image_data = await file.read() if file else None
-    new_user = User(name=user.name, email=user.email, password=user.password, img=image_data)
+    new_user = User(name=user.name, email=user.email, password=hashed_password, img=image_data)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -36,7 +39,7 @@ async def create_user(
 @route.post('/login', status_code=status.HTTP_200_OK, response_model=UserResponse)
 def login(email: str, password: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
-    if user is None or user.password != password:
+    if user is None or not PasswordMiddleware.verify_password(password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
