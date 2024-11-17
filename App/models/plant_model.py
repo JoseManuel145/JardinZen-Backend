@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Enum, LargeBinary
 from sqlalchemy.orm import composite, relationship
+from sqlalchemy import Enum as SQLAlchemyEnum
 from database.database import Base
 from enum import Enum
 
@@ -29,8 +30,8 @@ class Plant(Base):
     id_plant = Column(Integer, primary_key=True, autoincrement=True)
     info = composite(Info, Column("name", String), Column("description", String))
     hora_de_riego = Column(String, nullable=False)
-    category = Column(Enum(Category_Plant), nullable=False)
-    tipo = Column(Enum(Type_Plant), nullable=False)
+    category = Column(SQLAlchemyEnum(Category_Plant), nullable=False)
+    tipo = Column(SQLAlchemyEnum(Type_Plant), nullable=False)
     img = Column(LargeBinary, nullable=True)
     
     users = relationship("UserPlant", back_populates="plant")

@@ -1,9 +1,8 @@
-# user_model.py
-from sqlalchemy import Column, Integer, String, Enum, JSON, LargeBinary
+from sqlalchemy import Column, Integer, String, Enum as SQLAlchemyEnum, JSON, LargeBinary
 from sqlalchemy.orm import relationship
 from database.database import Base
 from models.user_plant_model import UserPlant
-from enum import Enum
+from enum import Enum 
 
 class Role(Enum):
     user = 'usuario'
@@ -19,6 +18,7 @@ class User(Base):
     password = Column(String, nullable=False)
     ubication = Column(JSON)
     img = Column(LargeBinary)
-    role = Column(Enum(Role), nullable=False)
+    # Uso correcto del Enum de SQLAlchemy
+    role = Column(SQLAlchemyEnum(Role), nullable=False)
 
     plants = relationship("UserPlant", back_populates="user")

@@ -3,12 +3,12 @@ from pydantic import BaseModel
 from typing import Optional
 
 
-class CategoryPlantEnum(str, Enum):
+class Category_Plant(str, Enum):
     categoriaA = "planta_interior"
     categoriaB = "arbol_fruta"
 
 
-class TypePlantEnum(str, Enum):
+class Type_Plant(str, Enum):
     arbusto = "arbusto"
     flor = "flor"
     arbol = "arbol"
@@ -22,8 +22,8 @@ class Info(BaseModel):
 class PlantBase(BaseModel):
     info: Info
     hora_de_riego: str
-    category: CategoryPlantEnum
-    tipo: TypePlantEnum
+    category: Category_Plant
+    tipo: Type_Plant
 
     class Config:
         orm_mode = True
