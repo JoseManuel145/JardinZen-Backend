@@ -27,7 +27,7 @@ class Publication(Base):
     info = composite(Info, Column("name", String, nullable=False), Column("description", String))
     media = Column(LargeBinary)
     
-    reactions = relationship("Reaction", back_populates="publication")
+    #reactions = relationship("Reaction", back_populates="publication")
 
 """
 class Reaction(Base):

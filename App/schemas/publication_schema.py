@@ -18,7 +18,7 @@ class PublicationBase(BaseModel):
     info : Info
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class PublicationRequest(PublicationBase): 
     pass  
@@ -27,5 +27,5 @@ class PublicationResponse(PublicationBase):
     id_publication: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 

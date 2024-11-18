@@ -1,27 +1,33 @@
 from enum import Enum
+from fastapi import UploadFile
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
 class RoleEnum(str, Enum):
-    user = 'usuario'
-    nursery_manager = 'gestor_vivero'
-    admin = 'administrador'
+    usuario = 'usuario'
+    gestor_vivero = 'gestor_vivero'
+    administrador = 'administrador'
 
-class UserBase(BaseModel): #el boceto de los datos
+class UserBase(BaseModel):  # El boceto de los datos
     name: str
     email: str
     ubication: Optional[Dict[str, Any]]
-    rol: RoleEnum
+    role: RoleEnum
+    file: Optional[UploadFile] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        orm_mode = True  # Tells Pydantic to treat the model as an ORM model.
 
-class UserRequest(UserBase): #lo que envia el usuario
-    password: str  
+class UserRequest(UserBase):
+    pass
+    password: str
 
-class UserResponse(UserBase): #lo que devuelve el servidor
+    def handle_image(self, file: UploadFile):
+        return file.file.read() 
+    
+class UserResponse(UserBase):  # Lo que devuelve el servidor
     id_user: int
 
     class Config:
-        orm_mode = True
-
+        orm_mode = True  # Tells Pydantic to treat the model as an ORM model.

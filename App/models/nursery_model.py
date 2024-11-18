@@ -20,4 +20,4 @@ class NurseryModel(Base):
     img = Column(LargeBinary)
     id_manager = Column(Integer, ForeignKey("Users.id_user"))
     
-    manager = relationship('Users', back_populates='nursery')
+    manager = relationship('User', back_populates='nurseries')

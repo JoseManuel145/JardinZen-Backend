@@ -26,7 +26,7 @@ class PlantBase(BaseModel):
     tipo: Type_Plant
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PlantRequest(PlantBase):
@@ -37,4 +37,4 @@ class PlantResponse(PlantBase):
     id_plant: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True

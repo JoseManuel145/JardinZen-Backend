@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, status, HTTPException, UploadFile, File, Form
 from models.user_model import User
 from database.database import Base, engine, get_db
 from schemas.user_schema import UserRequest, UserResponse
@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
 from middlewares.password_middleware import PasswordMiddleware
+import json
 
 route = APIRouter()
 
@@ -25,16 +26,42 @@ def get_user(id_user: int, db: Session = Depends(get_db)):
 # Crea un usuario
 
 
+@route.get("/users/", status_code=status.HTTP_200_OK, response_model=List[UserResponse])
+def get_users(db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    return users
+
 @route.post('/signUp', status_code=status.HTTP_201_CREATED, response_model=UserResponse)
-async def create_user(
-    user: UserRequest,
+async def signUp(
+    name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    ubication: str = Form(...),
+    role: str = Form(...),
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
-    hashed_password = PasswordMiddleware.hash_password(user.password)
+    try:
+        ubication_data = json.loads(ubication)
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ubication must be a valid JSON string."
+        )
+    
+    hashed_password = PasswordMiddleware.hash_password(password)
+    
     image_data = await file.read() if file else None
-    new_user = User(name=user.name, email=user.email, password=hashed_password, img=image_data)
-
+    
+    new_user = User(
+        name=name,
+        email=email,
+        password=hashed_password,
+        ubication=ubication_data,
+        role=role,
+        img=image_data
+    )
+    
     try:
         db.add(new_user)
         db.commit()
@@ -84,8 +111,11 @@ def delete_user(id_user: int, db: Session = Depends(get_db)):
 @route.patch('/account/{id_user}', status_code=status.HTTP_200_OK, response_model=UserResponse)
 async def update_user(
     id_user: int,
-    user: UserRequest,
-    file: Optional[UploadFile] = File(None),  # Imagen opcional
+    name: Optional[str] = Form(None), 
+    email: Optional[str] = Form(None), 
+    ubication: Optional[str] = Form(None), 
+    role: Optional[str] = Form(None), 
+    file: Optional[UploadFile] = File(None), 
     db: Session = Depends(get_db)
 ):
     user_db = db.query(User).filter(User.id_user == id_user).first()
@@ -93,12 +123,20 @@ async def update_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"User with id {id_user} not found")
 
-    # Actualizar los datos básicos del usuario
-    user_db.name = user.name
-    user_db.email = user.email
-    user_db.ubication = user.ubication
-
-    # Actualizar la imagen solo si se proporciona una nueva
+    if name:
+        user_db.name = name
+    if email:
+        user_db.email = email
+    if ubication:
+        try:
+            user_db.ubication = json.loads(ubication)
+        except json.JSONDecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Ubication must be a valid JSON string."
+            )
+    if role:
+        user_db.role = role
     if file:
         image_data = await file.read()
         user_db.img = image_data

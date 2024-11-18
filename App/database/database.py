@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 
 from pymongo import MongoClient
 
-SQLALCHEMY_DATABASE_URL = 'postgresql://manuel:Manu145#@localhost:5432/jardinzen'
+SQLALCHEMY_DATABASE_URL = 'postgresql://jose:Manu145@localhost:5432/jardinzen'
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True)
 Base = declarative_base()

@@ -12,7 +12,7 @@ class NurseryBase(BaseModel):
     
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class NurseryRequest(NurseryBase):
@@ -23,4 +23,4 @@ class NurseryResponse(NurseryBase):
     id_nursery: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
