@@ -86,10 +86,17 @@ def update_plant(id_user: int, id_plant: int, plant: PlantRequest, db: Session =
 
 # Elimina una planta
 @route.delete('/{id_user}/plants/{id_plant}', status_code=status.HTTP_204_NO_CONTENT)
-def delete_plant(id_plant: int, db: Session = Depends(get_db)):
+def delete_plant(id_user: int, id_plant: int, db: Session = Depends(get_db)):
+    # Primero, buscar la planta y verificar que exista
     plant = db.query(Plant).filter(Plant.id_plant == id_plant).first()
     if not plant:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plant not found")
+    user_plant = db.query(UserPlant).filter(UserPlant.id_user == id_user, UserPlant.id_plant == id_plant).first()
+    if user_plant:
+        db.delete(user_plant)
+        db.commit()
+
     db.delete(plant)
     db.commit()
+
     return {"message": "Plant deleted successfully"}
