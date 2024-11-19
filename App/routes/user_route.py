@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException, UploadFile, File, Form
-from models.user_model import User
+from models.user_model import User, Role
 from database.database import Base, engine, get_db
 from schemas.user_schema import UserRequest, UserResponse
 from sqlalchemy.orm import Session
@@ -37,7 +37,7 @@ async def signUp(
     email: str = Form(...),
     password: str = Form(...),
     ubication: str = Form(...),
-    role: str = Form(...),
+    role: Role = Form(...),
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):

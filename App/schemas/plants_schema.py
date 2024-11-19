@@ -1,40 +1,35 @@
-from enum import Enum
 from pydantic import BaseModel
-from typing import Optional
+from enum import Enum
 
 
-class Category_Plant(str, Enum):
-    categoriaA = "planta_interior"
-    categoriaB = "arbol_fruta"
+class CategoryPlant(str, Enum):
+    planta_interior = "planta_interior"
+    arbol_fruta = "arbol_fruta"
 
 
-class Type_Plant(str, Enum):
+class TypePlant(str, Enum):
     arbusto = "arbusto"
     flor = "flor"
     arbol = "arbol"
 
 
-class Info(BaseModel):
+class PlantBase(BaseModel):
     name: str
     description: str
-
-
-class PlantBase(BaseModel):
-    info: Info
     hora_de_riego: str
-    category: Category_Plant
-    tipo: Type_Plant
+    category: CategoryPlant
+    tipo: TypePlant
 
     class Config:
-        from_attributes = True
-
-
-class PlantRequest(PlantBase):
-    id_user: int
+        orm_mode = True
 
 
 class PlantResponse(PlantBase):
     id_plant: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True
+
+
+class PlantRequest(PlantBase):
+    pass
