@@ -11,7 +11,7 @@ class Info:
         return self.name, self.description
 
 
-class NurseryModel(Base):
+class Nursery(Base):
     __tablename__ = 'Nursery'
 
     id_nursery = Column(Integer, primary_key=True)

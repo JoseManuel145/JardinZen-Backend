@@ -23,4 +23,4 @@ class User(Base):
 
     plants = relationship("UserPlant", back_populates="user")
 
-    nurseries = relationship('NurseryModel', back_populates='manager')
+    nurseries = relationship('Nursery', back_populates='manager')
