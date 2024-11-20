@@ -1,15 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel
 
-"""
-class Type_reaction(str, Enum):
-    Like = 'like'
-    Love = 'love'
-    funny = 'funny'
-    sad = 'sad'
-    angry = 'angry'
-"""
-
 class Info(BaseModel):
     name: str
     description: str
