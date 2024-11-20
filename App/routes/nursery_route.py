@@ -22,7 +22,6 @@ async def create_nursery(
     name: str = Form(...),
     description: str = Form(...),
     ubication: str = Form(...),
-    id_manager: int = Form(...),
     file: Optional[UploadFile] = File(None), 
     db: Session = Depends(get_db)
 ):
@@ -37,7 +36,7 @@ async def create_nursery(
         info=Info(name=name, description=description),
         ubication=ubication,
         img=image_data,
-        id_manager=id_manager
+        id_manager=id_user
     )
     db.add(new_nursery)
     db.commit()
