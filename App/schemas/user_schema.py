@@ -13,7 +13,6 @@ class UserBase(BaseModel):  # El boceto de los datos
     email: str
     ubication: Optional[Dict[str, Any]]
     role: RoleEnum
-    file: Optional[UploadFile] = None
 
     class Config:
         from_attributes = True
@@ -21,6 +20,7 @@ class UserBase(BaseModel):  # El boceto de los datos
 
 class UserRequest(UserBase):
     pass
+    file: Optional[UploadFile] = None
     password: str
 
     def handle_image(self, file: UploadFile):

@@ -45,23 +45,38 @@ async def signUp(
     name: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
-    ubication: str = Form(...),
+    ubication: Optional[str] = Form(None),
     role: Role = Form(...),
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
-    try:
-        ubication_data = json.loads(ubication)
-    except json.JSONDecodeError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Ubication must be a valid JSON string."
-        )
+    # Imprimir datos recibidos
+    print(f"Datos recibidos en signUp: name={name}, email={email}, password={password}, ubication={ubication}, role={role}, file={file.filename if file else None}")
 
+    # Procesar ubicación
+    
+    if ubication is None:
+        ubication_data = {"":"", "": ""}
+    else:
+        try:
+            ubication_data = json.loads(ubication)
+            print(f"Ubication procesada como JSON: {ubication_data}")
+        except json.JSONDecodeError:
+            print("Error al decodificar la ubicación.")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Ubication must be a valid JSON string."
+            )
+
+    # Procesar contraseña
     hashed_password = PasswordMiddleware.hash_password(password)
+    print(f"Password encriptada: {hashed_password}")
 
+    # Leer datos del archivo
     image_data = await file.read() if file else None
-
+    print(f"Tamaño de la imagen subida: {len(image_data) if image_data else 'No file uploaded'} bytes")
+    
+    # Crear objeto User
     new_user = User(
         name=name,
         email=email,
@@ -70,36 +85,50 @@ async def signUp(
         role=role,
         img=image_data
     )
+    print(f"Nuevo usuario creado: {new_user}")
 
+    # Insertar usuario en la base de datos
     try:
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
-    except IntegrityError:
+        print(f"Usuario guardado en la base de datos con ID: {new_user.id_user}")
+    except IntegrityError as e:
         db.rollback()
+        print(f"Error al guardar usuario: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this email already exists."
         )
+
     return new_user
+
 
 # Iniciar sesión
 
 
 @route.post("/login", response_model=LoginResponse)
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
+    # Datos recibidos
     email = request.email
     password = request.password
+    print(f"Datos recibidos en login: email={email}, password={password}")
 
+    # Verificar credenciales
     user = authenticate_user(db, email, password)
     if not user:
+        print("Credenciales inválidas.")
         raise HTTPException(status_code=400, detail="Invalid credentials")
+    print(f"Usuario autenticado: {user}")
 
+    # Crear token de acceso
     access_token = create_access_token(
         data={"sub": str(user.id_user), "email": user.email}
     )
+    print(f"Token generado: {access_token}")
 
-    return LoginResponse(
+    # Retornar respuesta
+    response = LoginResponse(
         access_token=access_token,
         token_type="bearer",
         name=user.name,
@@ -108,6 +137,9 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
         role=user.role,
         id_user=user.id_user
     )
+    print(f"Respuesta enviada al cliente: {response}")
+    return response
+
 
 
 # Eliminar el usuario por ID
