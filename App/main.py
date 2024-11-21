@@ -10,17 +10,21 @@ Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],  # Cambia esto al dominio de tu frontend
+    # Cambia esto al dominio de tu frontend
+    allow_origins=["http://localhost:4200"],
     allow_credentials=True,
-    allow_methods=["*"],  # Permite todos los métodos (GET, POST, OPTIONS, etc.)
+    # Permite todos los métodos (GET, POST, OPTIONS, etc.)
+    allow_methods=["*"],
     allow_headers=["*"],  # Permite todos los headers
 )
+
 
 @app.get('/')
 def welcome():
     return {"message": "Welcome to the API"}
 
-app.include_router(user_route.route, prefix="/users", tags=["users"])
-app.include_router(plants_routes.route , prefix="/plants", tags=["plants"])
-app.include_router(nursery_route.route , prefix="/nurseries", tags=["nurseries"])
-app.include_router(publication_route.route , prefix="/publications", tags=["publications"])
+
+app.include_router(user_route.route,  tags=["users"])
+app.include_router(plants_routes.route,  tags=["plants"])
+app.include_router(nursery_route.route, tags=["nurseries"])
+app.include_router(publication_route.route,  tags=["publications"])
