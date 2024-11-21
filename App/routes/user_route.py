@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
 from middlewares.password_middleware import PasswordMiddleware
-from middlewares.auth_middleware import get_current_user, verify_token
+from middlewares.auth_middleware import get_current_user
 import json
 
 route = APIRouter()
