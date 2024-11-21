@@ -31,3 +31,16 @@ class UserResponse(UserBase):  # Lo que devuelve el servidor
 
     class Config:
         orm_mode = True  # Tells Pydantic to treat the model as an ORM model.
+   
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    name: str
+    email: str
+    ubication: Dict[str, Any]
+    role: str
+    id_user: int
