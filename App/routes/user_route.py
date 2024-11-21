@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status, HTTPException, UploadFile, File, Form
 import jwt
-from utils.security import authenticate_user
+from utils.security import authenticate_user, get_current_user, verify_user
 from routes.auth_route import create_access_token
 from models.user_model import User, Role
 from database.database import Base, engine, get_db
@@ -19,16 +19,11 @@ Base.metadata.create_all(bind=engine)
 # Obtiene un usuario por ID
 
 
+
 @route.get("/user/{id_user}", status_code=status.HTTP_200_OK, response_model=UserResponse)
 async def get_user_details(id_user: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     user = db.query(User).filter(User.id_user == id_user).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
-    if current_user.get("email") != user.email:
-        raise HTTPException(
-            status_code=403, detail="No tienes permisos para acceder a este recurso")
-
+    verify_user(id_user, db, current_user)
     return user
 
 # Crea un usuario
@@ -148,14 +143,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 @route.delete("/user/{id_user}", status_code=status.HTTP_200_OK)
 async def delete_user(id_user: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     user = db.query(User).filter(User.id_user == id_user).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-    # Verifica si el usuario tiene permiso para eliminar
-    if current_user.get("email") != user.email:
-        raise HTTPException(
-            status_code=403, detail="No tienes permisos para eliminar este recurso")
-
+    verify_user(id_user, db, current_user)
     db.delete(user)
     db.commit()
     return {"message": "Usuario eliminado"}
@@ -175,16 +163,7 @@ async def update_user(
     current_user: dict = Depends(get_current_user) 
 ):
     user_db = db.query(User).filter(User.id_user == id_user).first()
-    if not user_db:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with id {id_user} not found"
-        )
-    if current_user.get("email") != user_db.email:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only update your own profile"
-        )
+    verify_user(id_user, db, current_user)
 
     if name:
         user_db.name = name

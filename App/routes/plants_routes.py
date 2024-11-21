@@ -7,21 +7,11 @@ from models.plant_model import Plant, TypePlant, CategoryPlant
 from models.user_model import User
 from models.user_plant_model import UserPlant
 from middlewares.auth_middleware import get_current_user
+from utils.security import verify_user
 
 route = APIRouter()
 
 Base.metadata.create_all(bind=engine)
-
-# Verificar user
-def verify_user(id_user: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    user = db.query(User).filter(User.id_user == id_user).first()
-    if not user:
-        raise HTTPException(status_code=404, detail=f"User with ID {id_user} not found")
-    if current_user.get("email") != user.email:
-        raise HTTPException(
-            status_code=403, detail="No tienes permisos para acceder a este recurso"
-        )
-    return None  # Retorna explícitamente
 
 # Obtiene todas las plantas de un usuario
 @route.get('/{id_user}/plants', response_model=list[PlantResponse], status_code=status.HTTP_200_OK)

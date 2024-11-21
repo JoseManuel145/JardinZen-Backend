@@ -1,10 +1,12 @@
-from fastapi import HTTPException, status
+from fastapi import Depends, HTTPException, status
 from pydantic import BaseModel
 from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timedelta
 from typing import Optional
 from sqlalchemy.orm import Session
+from database.database import get_db
+from middlewares.auth_middleware import get_current_user
 from models.user_model import User  # Asegúrate de importar tu modelo de Usuario
 
 # Configuración de JWT
@@ -57,3 +59,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def verify_user(id_user: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    user = db.query(User).filter(User.id_user == id_user).first()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with ID {
+                            id_user} not found")
+    if current_user.get("email") != user.email:
+        raise HTTPException(
+            status_code=403, detail="No tienes permisos para acceder a este recurso"
+        )
+    return None  # Retorna explícitamente
