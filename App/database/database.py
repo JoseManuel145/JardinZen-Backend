@@ -6,7 +6,7 @@ from pymongo import MongoClient
 
 SQLALCHEMY_DATABASE_URL = 'postgresql://jose:Manu145@localhost:5432/jardinzen'
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True)
+engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
 Base = declarative_base()
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -17,16 +17,12 @@ def get_db():
         yield db
     finally:
         db.close()
-        """
+        
 MONGO_DATABASE_URL = "mongodb+srv://manuel:Manu145@jardinzen.8z95a.mongodb.net/"
-MONGO_DATABASE_NAME = "jardinzen"
+MONGO_DATABASE_NAME = "jardinZen"
 
 mongo_client = MongoClient(MONGO_DATABASE_URL)
 mongo_db = mongo_client[MONGO_DATABASE_NAME]
 
 def get_mongo_db():
-    try:
-        yield mongo_db
-    finally:
-        mongo_client.close()
-        """
+   return mongo_db
