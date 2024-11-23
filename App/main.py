@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database.database import Base, engine
-from routes import plants_routes, user_route, nursery_route, publication_route, products_route
+from routes import plants_routes, user_route, nursery_route, publication_route, products_route, cart_route
 from middlewares import password_middleware
 
 app = FastAPI()
@@ -10,12 +10,10 @@ Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
-    # Cambia esto al dominio de tu frontend
     allow_origins=["http://localhost:4200"],
     allow_credentials=True,
-    # Permite todos los métodos (GET, POST, OPTIONS, etc.)
     allow_methods=["*"],
-    allow_headers=["*"],  # Permite todos los headers
+    allow_headers=["*"], 
 )
 
 

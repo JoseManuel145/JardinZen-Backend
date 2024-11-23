@@ -1,15 +1,17 @@
+from typing import Optional
 from pydantic import BaseModel
 
 class Product(BaseModel):
     name: str
-    price: float
-    photo: str
+    price: int
+    quantity: int
+    description: Optional[str] = None
 
     class Config:
-        schema_extra = {
-            "example": {
-                "name": "Laptop",
-                "price": 1000.00,
-                "photo": "https://example.com/laptop.jpg"
-            }
-        }
+        orm_mode = True
+
+class ProductResponse(Product):
+    id_product: int
+    
+    class Config:
+        orm_mode = True

@@ -1,9 +1,12 @@
-from sqlalchemy import Column, Integer, String, Float, LargeBinary
+from sqlalchemy import Column, Integer, String, LargeBinary
 from database.database import Base
 
 class Product(Base):
-    __tablename__ = "products"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    price = Column(Float)
-    photo = Column(LargeBinary) 
+    __tablename__ = "productoss"
+
+    id_product = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    price = Column(Integer, nullable=False)
+    quantity = Column(Integer, nullable=False)
+    description = Column(String, nullable=True)
+    img = Column(LargeBinary, nullable=False)
