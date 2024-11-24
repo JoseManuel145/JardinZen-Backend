@@ -1,17 +1,15 @@
 from typing import Optional
 from pydantic import BaseModel
+from decimal import Decimal
 
-class Product(BaseModel):
+class ProductBase(BaseModel):
     name: str
-    price: int
-    quantity: int
     description: Optional[str] = None
+    price: Decimal
+    stock: int
 
-    class Config:
-        orm_mode = True
-
-class ProductResponse(Product):
+class ProductResponse(ProductBase):
     id_product: int
-    
+
     class Config:
         orm_mode = True
