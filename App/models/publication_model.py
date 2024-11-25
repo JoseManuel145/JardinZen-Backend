@@ -16,6 +16,6 @@ class Publication(Base):
     id_publication = Column(Integer, primary_key=True, autoincrement=True)
     id_author = Column(Integer, ForeignKey("Users.id_user"))
     info = composite(Info, Column("name", String, nullable=False), Column("description", String))
-    media = Column(LargeBinary)
+    media = Column(String)
     
    

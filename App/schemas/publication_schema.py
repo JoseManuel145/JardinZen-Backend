@@ -16,7 +16,7 @@ class PublicationRequest(PublicationBase):
 
 class PublicationResponse(PublicationBase):
     id_publication: int
-
+    media: str
     class Config:
         from_attributes = True
 

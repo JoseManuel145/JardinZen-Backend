@@ -2,7 +2,7 @@ import os
 import base64
 import string
 import uuid
-from fastapi import APIRouter, Depends, FastAPI, status, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, status, HTTPException, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
 import jwt
 from utils.security import authenticate_user, get_current_user, verify_user
@@ -18,10 +18,9 @@ from middlewares.auth_middleware import get_current_user
 import json
 
 route = APIRouter()
-app = FastAPI()
 
 # Directorio para archivos estáticos (imágenes)
-app.mount("/media", StaticFiles(directory=os.path.join(os.getcwd(), "media")), name="media")
+route.mount("/media", StaticFiles(directory=os.path.join(os.getcwd(), "media")), name="media")
 
 Base.metadata.create_all(bind=engine)
 
