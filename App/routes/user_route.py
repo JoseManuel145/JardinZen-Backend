@@ -1,6 +1,4 @@
 import os
-import base64
-import string
 import uuid
 from fastapi import APIRouter, Depends, status, HTTPException, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
@@ -9,7 +7,7 @@ from utils.security import authenticate_user, get_current_user, verify_user
 from routes.auth_route import create_access_token
 from models.user_model import User, Role
 from database.database import Base, engine, get_db, get_mongo_db
-from schemas.user_schema import LoginRequest, LoginResponse, UserResponse
+from schemas.user_schema import LoginRequest, LoginResponse, UserRequest, UserResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
@@ -29,29 +27,11 @@ IMAGEDIR = "media/"
 
 # Crear usuario
 @route.post('/signUp', status_code=status.HTTP_201_CREATED, response_model=UserResponse)
-async def signUp(
-    name: str = Form(...),
-    email: str = Form(...),
-    password: str = Form(...),
-    ubication: Optional[str] = Form(None),
-    role: Role = Form(...),
-    file: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    mongo_db=Depends(get_mongo_db)
-):
-    if ubication is None:
-        ubication_data = {"": ""}
-    else:
-        try:
-            ubication_data = json.loads(ubication)
-        except json.JSONDecodeError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Ubication must be a valid JSON string."
-            )
+async def signUp(request: UserRequest, db: Session = Depends(get_db), mongo_db=Depends(get_mongo_db)):
+    ubication_data = request.ubication if request.ubication else {"": ""}
 
-    hashed_password = PasswordMiddleware.hash_password(password)
-
+    hashed_password = PasswordMiddleware.hash_password(request.password)
+    """
     img_path = None
     if file:
         os.makedirs(IMAGEDIR, exist_ok=True)
@@ -63,15 +43,16 @@ async def signUp(
 
         img_path = filepath
 
-        mongo_db["photos"].insert_one({"email": email, "img_path": img_path})
+        mongo_db["photos"].insert_one({"email": request.email, "img_path": img_path})
+    """
 
     new_user = User(
-        name=name,
-        email=email,
+        name=request.name,
+        email=request.email,
         password=hashed_password,
         ubication=ubication_data,
-        role=role,
-        img=img_path
+        role=request.role,
+        img= ""
     )
     try:
         db.add(new_user)
@@ -222,24 +203,28 @@ async def update_user(
             )
     if role:
         user_db.role = role
+        # Manejo del archivo (si se envía uno)
     if file:
-        if user_db.img and isinstance(user_db.img, str) and os.path.exists(user_db.img):
+        # Eliminar la imagen anterior si existe
+        if user_db.img and os.path.exists(user_db.img):
             os.remove(user_db.img)
 
+        # Guardar la nueva imagen
         filename = f"{uuid.uuid4()}.jpg"
         filepath = os.path.join(IMAGEDIR, filename)
+        os.makedirs(IMAGEDIR, exist_ok=True)
 
         with open(filepath, "wb") as f:
-            f.write(await file.read())  # Guardamos el contenido del archivo
+            f.write(await file.read())
 
-        # Actualizar la ruta de la imagen en la base de datos
+        # Actualizar la ruta de la imagen en la base de datos y MongoDB
         user_db.img = filepath
-
-        # Actualizar ruta en MongoDB
         mongo_db["photos"].update_one(
             {"email": user_db.email},
-            {"$set": {"img_path": filepath}}
+            {"$set": {"img_path": filepath}},
+            upsert=True  # Si no existe el documento, se crea
         )
+
 
     db.commit()
     db.refresh(user_db)

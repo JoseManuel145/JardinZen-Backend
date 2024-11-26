@@ -14,21 +14,22 @@ class UserBase(BaseModel):  # El boceto de los datos
     ubication: Optional[Dict[str, Any]]
     role: RoleEnum
 
-    class Config:
-        from_attributes = True
-        orm_mode = True  # Tells Pydantic to treat the model as an ORM model.
-
-class UserRequest(UserBase):
-    pass
-    file: Optional[UploadFile] = None
+class UserRequest(BaseModel):
+    name: str
+    email: str
+    ubication: Optional[Dict[str, Any]]
+    role: RoleEnum
     password: str
 
-    def handle_image(self, file: UploadFile):
-        return file.file.read() 
-    
-class UserResponse(UserBase):  # Lo que devuelve el servidor
-    id_user: int
 
+class UserResponse(BaseModel):  # Lo que devuelve el servidor
+    id_user: int
+    name: str
+    email: str
+    ubication: Optional[Dict[str, Any]]
+    role: RoleEnum
+    password: str
+    
     class Config:
         orm_mode = True  # Tells Pydantic to treat the model as an ORM model.
    
