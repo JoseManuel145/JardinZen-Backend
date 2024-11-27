@@ -8,8 +8,13 @@ class ProductBase(BaseModel):
     price: Decimal
     stock: int
 
-class ProductResponse(ProductBase):
+class ProductResponse(BaseModel):
     id_product: int
+    name: str
+    description: str
+    price: float
+    stock: int
+    img: str
 
     class Config:
-        orm_mode = True
+        orm_mode = True 

@@ -10,7 +10,7 @@ class Product(Base):
     description = Column(String, nullable=True)
     price = Column(DECIMAL(10, 2), nullable=False)
     stock = Column(Integer, nullable=False)
-    img = Column(LargeBinary, nullable=True)
+    img = Column(String, nullable=True)
 
     carts = relationship("CartProduct", back_populates="product")
     
