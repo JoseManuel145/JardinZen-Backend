@@ -31,7 +31,7 @@ class UserResponse(BaseModel):  # Lo que devuelve el servidor
     password: str
     
     class Config:
-        orm_mode = True  # Tells Pydantic to treat the model as an ORM model.
+        from_attributes = True  # Cambiar orm_mode = True por esto
    
 class LoginRequest(BaseModel):
     email: str

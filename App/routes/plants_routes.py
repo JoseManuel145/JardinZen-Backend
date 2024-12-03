@@ -15,8 +15,6 @@ import base64
 
 route = APIRouter()
 
-Base.metadata.create_all(bind=engine)
-
 # Obtiene todas las plantas de un usuario
 @route.get('/{id_user}/plants', status_code=status.HTTP_200_OK )
 def get_plantas(id_user: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

@@ -6,7 +6,7 @@ import jwt
 from utils.security import authenticate_user, get_current_user, verify_user
 from routes.auth_route import create_access_token
 from models.user_model import User, Role
-from database.database import Base, engine, get_db, get_mongo_db
+from database.database import Base, engine, get_db
 from schemas.user_schema import LoginRequest, LoginResponse, UserRequest, UserResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -23,7 +23,6 @@ os.makedirs(IMAGEDIR, exist_ok=True)
 
 route.mount("/media", StaticFiles(directory=os.path.join(os.getcwd(), "media")), name="media")
 
-Base.metadata.create_all(bind=engine)
 
 # Crear usuario
 @route.post('/signUp', status_code=status.HTTP_201_CREATED, response_model=UserResponse)
@@ -35,22 +34,11 @@ async def signUp(
     role: Role = Form(...),
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
-    mongo_db=Depends(get_mongo_db)
 ):
     ubication_data = json.loads(ubication) if ubication else {"": ""}
     
     hashed_password = PasswordMiddleware.hash_password(password)
     
-    img_path = ""
-    if file:
-        filename = f"{uuid.uuid4()}.jpg"
-        filepath = os.path.join(IMAGEDIR, filename)
-        
-        with open(filepath, "wb") as f:
-            f.write(await file.read())
-        
-        img_path = filepath
-        mongo_db["photos"].insert_one({"email": email, "img_path": img_path})
 
     new_user = User(
         name=name,
@@ -58,7 +46,7 @@ async def signUp(
         password=hashed_password,
         ubication=ubication_data,
         role=role,
-        img=img_path
+        img="img_path"
     )
     
     try:
@@ -148,7 +136,6 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 async def delete_user(
     id_user: int,
     db: Session = Depends(get_db),
-    mongo_db=Depends(get_mongo_db),
     current_user: dict = Depends(get_current_user)
 ):
     user = db.query(User).filter(User.id_user == id_user).first()
@@ -162,11 +149,6 @@ async def delete_user(
             os.remove(user.img)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error deleting image: {str(e)}")
-
-    if mongo_db["photos"].find_one({"email": user.email}):
-        mongo_db["photos"].delete_one({"email": user.email})
-    else:
-        raise HTTPException(status_code=404, detail="Image path not found in MongoDB")
 
     try:
         db.delete(user)
@@ -187,7 +169,6 @@ async def update_user(
     role: Optional[Role] = Form(None),
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
-    mongo_db=Depends(get_mongo_db),
     current_user: dict = Depends(get_current_user)
 ):
     user_db = db.query(User).filter(User.id_user == id_user).first()
@@ -223,15 +204,6 @@ async def update_user(
 
         with open(filepath, "wb") as f:
             f.write(await file.read())
-
-        # Actualizar la ruta de la imagen en la base de datos y MongoDB
-        user_db.img = filepath
-        mongo_db["photos"].update_one(
-            {"email": user_db.email},
-            {"$set": {"img_path": filepath}},
-            upsert=True  # Si no existe el documento, se crea
-        )
-
 
     db.commit()
     db.refresh(user_db)

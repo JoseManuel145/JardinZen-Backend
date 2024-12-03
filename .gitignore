@@ -1,4 +1,4 @@
 db.sql
-venv/
-media/
+/venv
+/media
 .env

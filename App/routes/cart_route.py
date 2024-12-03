@@ -10,8 +10,6 @@ from sqlalchemy import update
 
 route = APIRouter()
 
-Base.metadata.create_all(bind=engine)
-
 
 @route.get('/{id_user}/cart/{id_cart}', status_code=status.HTTP_200_OK, response_model=ShoppingCartResponse)
 async def getCart(id_user: int, id_cart: int, db: Session = Depends(get_db)):

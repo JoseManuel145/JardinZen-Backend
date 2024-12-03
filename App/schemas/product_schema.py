@@ -7,6 +7,7 @@ class ProductBase(BaseModel):
     description: Optional[str] = None
     price: Decimal
     stock: int
+    img : str
 
 class ProductResponse(BaseModel):
     id_product: int
@@ -17,4 +18,4 @@ class ProductResponse(BaseModel):
     img: str
 
     class Config:
-        orm_mode = True 
+        from_attributes = True

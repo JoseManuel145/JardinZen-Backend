@@ -23,14 +23,14 @@ class PlantBase(BaseModel):
     tipo: TypePlant
     img: str
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PlantResponse(PlantBase):
     id_plant: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PlantRequest(PlantBase):

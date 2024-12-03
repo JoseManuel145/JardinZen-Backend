@@ -1,16 +1,22 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
 import cloudinary
+from sqlalchemy.pool import QueuePool
 
 load_dotenv()
 
 SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, 
+    echo=False,
+    poolclass=QueuePool,
+    pool_size=5,
+    max_overflow=10
+)
 Base = declarative_base()
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -22,11 +28,6 @@ def get_db():
     finally:
         db.close()
         
-MONGO_DATABASE_URL = os.getenv("MONGO_DATABASE_URL")
-MONGO_DATABASE_NAME = os.getenv("MONGO_DATABASE_NAME")
-
-mongo_client = MongoClient(MONGO_DATABASE_URL)
-mongo_db = mongo_client[MONGO_DATABASE_NAME]
 
 KEY_NAME = os.getenv("KEY_NAME")
 API_KEY = os.getenv("API_KEY")
@@ -39,5 +40,3 @@ cloudinary.config(
     secure=True
 )               
 
-def get_mongo_db():
-   return mongo_db

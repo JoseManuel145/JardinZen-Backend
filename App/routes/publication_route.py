@@ -12,10 +12,6 @@ import cloudinary.uploader
 import base64
 
 route = APIRouter()
-Base.metadata.create_all(bind=engine)
-IMAGEDIR = "media/"
-route.mount("/media", StaticFiles(directory=os.path.join(os.getcwd(), "media")), name="media")
-
 
 @route.post("/{id_user}/publications/create", response_model=PublicationResponse, status_code=status.HTTP_201_CREATED)
 async def create_publication(

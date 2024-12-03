@@ -11,8 +11,6 @@ import base64
 
 route = APIRouter()
 
-Base.metadata.create_all(bind=engine)
-
 
 @route.post('/{id_user}/viveros', status_code=status.HTTP_201_CREATED)
 async def create_nursery(
