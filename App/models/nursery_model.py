@@ -17,7 +17,7 @@ class Nursery(Base):
     id_nursery = Column(Integer, primary_key=True)
     info = composite(Info, Column("name", String, nullable=False), Column("description", String))
     ubication = Column(String, nullable=True)
-    img = Column(LargeBinary)
+    img = Column(String)
     id_manager = Column(Integer, ForeignKey("Users.id_user"))
     
     manager = relationship('User', back_populates='nurseries')

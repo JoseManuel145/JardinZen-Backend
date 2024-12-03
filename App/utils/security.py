@@ -8,10 +8,14 @@ from sqlalchemy.orm import Session
 from database.database import get_db
 from middlewares.auth_middleware import get_current_user
 from models.user_model import User  # Asegúrate de importar tu modelo de Usuario
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Configuración de JWT
-SECRET_KEY = "66a106ad2e03e1443fd25f00261a1516d492d388b82d8917a4089000c6991ed6"
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Instancia del contexto de contraseñas
@@ -64,8 +68,12 @@ def verify_user(id_user: int, db: Session = Depends(get_db), current_user: User 
     user = db.query(User).filter(User.id_user == id_user).first()
     if not user:
         raise HTTPException(status_code=404, detail=f"User with ID {id_user} not found")
-    if current_user.get("email") != user.email:
+    
+    # Verifica si current_user es un diccionario o un objeto User
+    current_user_email = current_user.get("email") if isinstance(current_user, dict) else current_user.email
+    
+    if current_user_email != user.email:
         raise HTTPException(
             status_code=403, detail="No tienes permisos para acceder a este recurso"
         )
-    return None  # Retorna explícitamente
+    return None

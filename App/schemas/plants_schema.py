@@ -3,14 +3,16 @@ from enum import Enum
 
 
 class CategoryPlant(str, Enum):
-    planta_interior = "planta_interior"
-    arbol_fruta = "arbol_fruta"
+    Interior = "Interior"
+    Exterior = "Exterior"
+    Ornamental = "Ornamental"
 
 
 class TypePlant(str, Enum):
-    arbusto = "arbusto"
-    flor = "flor"
-    arbol = "arbol"
+    Cactus = "Cactus"
+    Suculenta = "Suculenta"
+    Arbusto = "Arbusto"
+    Otro = "Otro"
 
 
 class PlantBase(BaseModel):
@@ -19,7 +21,7 @@ class PlantBase(BaseModel):
     hora_de_riego: str
     category: CategoryPlant
     tipo: TypePlant
-
+    img: str
     class Config:
         orm_mode = True
 

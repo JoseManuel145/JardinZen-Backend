@@ -5,9 +5,13 @@ from sqlalchemy.future import select
 from models.user_model import User
 from database.database import get_db
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from dotenv import load_dotenv
+import os
 
-SECRET_KEY = "66a106ad2e03e1443fd25f00261a1516d492d388b82d8917a4089000c6991ed6"
-ALGORITHM = "HS256"
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 100
 oauth2_scheme = HTTPBearer()
 

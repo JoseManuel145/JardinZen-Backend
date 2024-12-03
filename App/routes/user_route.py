@@ -17,43 +17,50 @@ import json
 
 route = APIRouter()
 
-# Directorio para archivos estáticos (imágenes)
+# Crear el directorio media si no existe
+IMAGEDIR = "media/"
+os.makedirs(IMAGEDIR, exist_ok=True)
+
 route.mount("/media", StaticFiles(directory=os.path.join(os.getcwd(), "media")), name="media")
 
 Base.metadata.create_all(bind=engine)
 
-# Directorio para guardar imágenes
-IMAGEDIR = "media/"
-
 # Crear usuario
 @route.post('/signUp', status_code=status.HTTP_201_CREATED, response_model=UserResponse)
-async def signUp(request: UserRequest, db: Session = Depends(get_db), mongo_db=Depends(get_mongo_db)):
-    ubication_data = request.ubication if request.ubication else {"": ""}
-
-    hashed_password = PasswordMiddleware.hash_password(request.password)
-    """
-    img_path = None
+async def signUp(
+    name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    ubication: str = Form(None),
+    role: Role = Form(...),
+    file: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db),
+    mongo_db=Depends(get_mongo_db)
+):
+    ubication_data = json.loads(ubication) if ubication else {"": ""}
+    
+    hashed_password = PasswordMiddleware.hash_password(password)
+    
+    img_path = ""
     if file:
-        os.makedirs(IMAGEDIR, exist_ok=True)
         filename = f"{uuid.uuid4()}.jpg"
         filepath = os.path.join(IMAGEDIR, filename)
-
+        
         with open(filepath, "wb") as f:
             f.write(await file.read())
-
+        
         img_path = filepath
-
-        mongo_db["photos"].insert_one({"email": request.email, "img_path": img_path})
-    """
+        mongo_db["photos"].insert_one({"email": email, "img_path": img_path})
 
     new_user = User(
-        name=request.name,
-        email=request.email,
+        name=name,
+        email=email,
         password=hashed_password,
         ubication=ubication_data,
-        role=request.role,
-        img= ""
+        role=role,
+        img=img_path
     )
+    
     try:
         db.add(new_user)
         db.commit()

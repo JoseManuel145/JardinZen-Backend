@@ -7,9 +7,9 @@ class Info(BaseModel):
 
 class PublicationBase(BaseModel):
     info : Info
-    
     class Config:
         from_attributes = True
+    media: str
 
 class PublicationRequest(PublicationBase): 
     pass  

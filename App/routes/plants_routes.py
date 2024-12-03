@@ -8,21 +8,26 @@ from models.user_model import User
 from models.user_plant_model import UserPlant
 from middlewares.auth_middleware import get_current_user
 from utils.security import verify_user
+from typing import Optional
+import cloudinary.uploader
+import base64
+
 
 route = APIRouter()
 
 Base.metadata.create_all(bind=engine)
 
 # Obtiene todas las plantas de un usuario
-@route.get('/{id_user}/plants', response_model=list[PlantResponse], status_code=status.HTTP_200_OK)
-def get_plants(id_user: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+@route.get('/{id_user}/plants', status_code=status.HTTP_200_OK )
+def get_plantas(id_user: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    
     verify_user(id_user, db, current_user)
 
     plants = db.query(UserPlant).filter(UserPlant.id_user == id_user).all()
     if not plants:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="No plants found for this user"
-        )
+#        raise HTTPException(
+#            status_code=status.HTTP_404_NOT_FOUND, detail="No plants found for this user"
+        print("No plants found for this user")
     return [p.plant for p in plants]
 
 # Obtiene una planta específica
@@ -42,41 +47,90 @@ def get_plant(id_user: int, id_plant: int, db: Session = Depends(get_db), curren
     plant = db.query(Plant).filter(Plant.id_plant == id_plant).first()
     return plant
 
-# Crea una nueva planta para un usuario
-@route.post("/{id_user}/plants", response_model=PlantResponse, status_code=status.HTTP_201_CREATED)
-def create_plant(
+
+#Crea una nueva planta para un usuario
+@route.post("/{id_user}/plants", status_code=status.HTTP_201_CREATED)
+async def create_plant(
     id_user: int,
     name: str = Form(...), 
     description: str = Form(...), 
     hora_de_riego: str = Form(...), 
-    category: CategoryPlant = Form(...), 
-    tipo: TypePlant = Form(...), 
-    img: UploadFile = File(None), 
+    category: str = Form(...), 
+    tipo: str = Form(...), 
+    img: Optional[UploadFile] = Form(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+
     verify_user(id_user, db, current_user)
+    try:
+        image_url = ""
+        if img:
+            try:
+                # Leer el contenido del archivo
+                contents = await img.read()
+                print(img)
+                if not contents:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="El archivo de imagen está vacío"
+                    )
 
-    # Leer contenido de la imagen si existe
-    image_data = img.file.read() if img else None
+                # Subir a Cloudinary
+                upload_result = cloudinary.uploader.upload(
+                    "data:image/jpeg;base64," + base64.b64encode(contents).decode("utf-8"),
+                    folder="plants",  # Carpeta en Cloudinary
+                    resource_type="auto"
+                )
 
-    new_plant = Plant(
-        name=name,
-        description=description,
-        hora_de_riego=hora_de_riego,
-        category=category,
-        tipo=tipo,
-        img=image_data
-    )
-    db.add(new_plant)
-    db.commit()
-    db.refresh(new_plant)
+                image_url = upload_result.get("secure_url", "")
+                print(image_url)
+            except Exception as e:
+                print(f"Error al procesar la imagen: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Error al procesar la imagen: {str(e)}"
+                )
+        
+        # Validar y convertir category y tipo
+        try:
+            category_enum = CategoryPlant(category)
+            tipo_enum = TypePlant(tipo)
+        except ValueError as e:
+            raise HTTPException(
+                detail=f"Valor inválido para category o tipo: {str(e)}"
+            )
 
-    connection = UserPlant(id_user=id_user, id_plant=new_plant.id_plant)
-    db.add(connection)
-    db.commit()
+        # Crear la planta
+        plant = Plant(
+            name=name,
+            description=description,
+            hora_de_riego=hora_de_riego,
+            category=category_enum,
+            tipo=tipo_enum,
+            img=image_url
+        )
 
-    return new_plant
+        db.add(plant)
+        db.commit()
+        db.refresh(plant)
+        
+        # Crear la relación usuario-planta
+        user_plant = UserPlant(
+            id_user=id_user,
+            id_plant=plant.id_plant
+        )
+        db.add(user_plant)
+        db.commit()
+        
+        return plant
+
+    except Exception as e:
+        print(f"Error creating plant: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e)
+        )
 
 # Actualiza una planta
 @route.put('/{id_user}/plants/{id_plant}', response_model=PlantResponse, status_code=status.HTTP_200_OK)

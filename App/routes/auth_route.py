@@ -7,12 +7,16 @@ from schemas.token_schema import TokenResponseSchema, UserLoginSchema
 from utils.security import verify_password
 from database.database import get_db
 from sqlalchemy.future import select
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 router = APIRouter()
 
-SECRET_KEY = "66a106ad2e03e1443fd25f00261a1516d492d388b82d8917a4089000c6991ed6"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 10
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)):
     to_encode = data.copy()

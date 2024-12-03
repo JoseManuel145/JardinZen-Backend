@@ -9,6 +9,7 @@ class Info(BaseModel):
 class NurseryBase(BaseModel):
     info: Info
     ubication: str
+    img: str
     
 
     class Config:

@@ -1,5 +1,4 @@
 import os
-import uuid
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -7,8 +6,10 @@ from models.user_model import User
 from middlewares.auth_middleware import get_current_user
 from schemas.publication_schema import PublicationResponse
 from models.publication_model import Publication
-from database.database import Base, engine, get_db, get_mongo_db
+from database.database import Base, engine, get_db
 from utils.security import verify_user
+import cloudinary.uploader
+import base64
 
 route = APIRouter()
 Base.metadata.create_all(bind=engine)
@@ -24,52 +25,64 @@ async def create_publication(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    mongo_db=Depends(get_mongo_db)
 ):
     verify_user(id_user, db, current_user)
 
-    img_path = None
-    if file:
-        os.makedirs(IMAGEDIR, exist_ok=True)
-        filename = f"{uuid.uuid4()}.jpg"
-        filepath = os.path.join(IMAGEDIR, filename)
+    try:
+        image_url = ""
+        if file:
+            try:
+                # Leer el contenido del archivo
+                contents = await file.read()
+                print(file)
+                if not contents:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="El archivo de imagen está vacío"
+                    )
 
-        # Save the uploaded file to disk
-        with open(filepath, "wb") as f:
-            f.write(await file.read())
+                # Subir a Cloudinary
+                upload_result = cloudinary.uploader.upload(
+                    "data:image/jpeg;base64," + base64.b64encode(contents).decode("utf-8"),
+                    folder="plants",  # Carpeta en Cloudinary
+                    resource_type="auto"
+                )
 
-        img_path = filepath
+                image_url = upload_result.get("secure_url", "")
+                print(image_url)
+            except Exception as e:
+                print(f"Error al procesar la imagen: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Error al procesar la imagen: {str(e)}"
+                )
 
-        mongo_db["photos"].insert_one({"tittle": title, "img_path": img_path})
+        # Crear la planta
+        new_publication = Publication(
+            name=title,
+            description=content,
+            id_author=id_user,
+            media=image_url
+        )
+        db.add(new_publication)
+        db.commit()
+        db.refresh(new_publication)
+        return new_publication
 
-    new_publication = Publication(
-        name=title,
-        description=content,
-        id_author=id_user,
-        media=img_path
-    )
-    db.add(new_publication)
-    db.commit()
-    db.refresh(new_publication)
-    return new_publication
+    except Exception as e:
+        print(f"Error creating plant: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e)
+        )
+
 
 @route.get("/publications", response_model=list[PublicationResponse], status_code=status.HTTP_200_OK)
 async def get_publications(db: Session = Depends(get_db)):
-    # Obtén las publicaciones desde la base de datos
+        
     publications = db.query(Publication).all()
 
-    for publication in publications:
-        if publication.media and isinstance(publication.media, memoryview):
-            try:
-                publication.media = publication.media.tobytes().decode('utf-8')
-                print("Media decodificada correctamente.")
-            except UnicodeDecodeError:
-                publication.media = "None"
-                print("No se puede decodificar como UTF-8.")
-        else:
-            publication.media = "None"
-            print("No hay cadena o media no es memoryview.")
-
+    print(publications)
     return publications
 
 
@@ -79,7 +92,6 @@ async def delete_publication(
     id_publication: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    mongo_db=Depends(get_mongo_db)
 ):
     # Verificar si el usuario tiene permiso para eliminar la publicación
     verify_user(id_user, db, current_user)
@@ -92,27 +104,6 @@ async def delete_publication(
     # Verificar que el usuario sea el autor de la publicación
     if publication.id_author != id_user:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have permission to delete this publication")
-
-    # Eliminar el archivo de medios si existe
-    if publication.media:
-        # Asegurarse de que publication.media sea un string (por ejemplo, una ruta de archivo)
-        if isinstance(publication.media, memoryview):
-            publication.media = publication.media.tobytes().decode('utf-8')  # Si es un memoryview, convertir a string
-
-        # Comprobar si la media es una ruta de archivo en el sistema
-        if isinstance(publication.media, str) and os.path.exists(publication.media):
-            try:
-                os.remove(publication.media)
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Error deleting image: {str(e)}")
-
-        # Eliminar la foto en MongoDB
-        try:
-            result = mongo_db["photos"].delete_one({"img_path": publication.media})
-            if result.deleted_count == 0:
-                raise HTTPException(status_code=500, detail="Error deleting photo from MongoDB")
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error deleting photo from MongoDB: {str(e)}")
 
     # Eliminar la publicación de la base de datos SQL
     try:
